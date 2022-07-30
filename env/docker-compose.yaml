@@ -1,0 +1,43 @@
+version: "3.8"
+services:
+  mysql-server:
+    # (1) M1 맥북일 경우 mysql:8.0.2 처럼 마지막 버전을 상세히 적으면 실행할 수 없다.
+    image: mysql:8.0
+    # (2) M1 일 경우에 platform 을 명시해주세요.
+    platform: linux/amd64
+    container_name: mysql-server
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=dnwjd123
+      - TZ=Asia/Seoul
+    # (3) 본인 것으로  수정! 만약 따로 볼륨 설정을 원하지 않는다면 삭제
+    volumes:
+      - /Users/youzheng/Data/mysql:/var/lib/mysql
+  zookeeper:
+    image: wurstmeister/zookeeper
+    container_name: zookeepr
+    ports:
+      - "2181:2181"
+  kafka:
+    image: wurstmeister/kafka
+    depends_on:
+      - zookeeper
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: 127.0.0.1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    volumes:
+      - /Users/youzheng/Data/kafka:/var/run/docker.sock
+  redis: # (4) 따로 Redis 가 있다면 주석처리
+    image: redis:6.0.5
+    command: redis-server --requirepass dnwjd123 --port 6379
+    container_name: redis-server
+    hostname: redis-server
+    labels:
+      - "name=redis"
+      - "mode=standalone"
+    ports:
+      - "6379:6379"
