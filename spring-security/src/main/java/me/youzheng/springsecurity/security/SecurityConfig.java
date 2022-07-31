@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableList;
 import lombok.RequiredArgsConstructor;
 import me.youzheng.springsecurity.property.PropertiesConfig.JwtProperties;
 import me.youzheng.springsecurity.property.PropertiesConfig.SecurityProperties;
-import me.youzheng.springsecurity.repository.MenuAuthRepository;
+import me.youzheng.springsecurity.menuauth.repository.MenuAuthRepository;
 import me.youzheng.springsecurity.security.factorybean.UrlResourceMapFactoryBean;
 import me.youzheng.springsecurity.security.filter.JwtAuthenticationFilter;
 import me.youzheng.springsecurity.security.filter.JwtLoginProcessorFilter;

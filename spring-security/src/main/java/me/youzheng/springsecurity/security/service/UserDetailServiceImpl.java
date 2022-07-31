@@ -1,12 +1,9 @@
 package me.youzheng.springsecurity.security.service;
 
-import com.google.common.collect.ImmutableList;
-import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import me.youzheng.springsecurity.entity.MenuAuthGroup;
-import me.youzheng.springsecurity.entity.User;
-import me.youzheng.springsecurity.repository.UserRepository;
+import me.youzheng.springsecurity.user.entity.User;
+import me.youzheng.springsecurity.user.repository.UserRepository;
 import me.youzheng.springsecurity.security.principal.UserContext;
 import me.youzheng.springsecurity.security.principal.UserInfo;
 import org.springframework.context.annotation.Primary;
