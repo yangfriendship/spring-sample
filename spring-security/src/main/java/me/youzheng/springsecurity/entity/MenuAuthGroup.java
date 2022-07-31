@@ -26,7 +26,7 @@ public class MenuAuthGroup {
     private Long menuAuthGroupNo;
 
     @Column(length = 50)
-    private String menuName;
+    private String groupName;
 
     @Column(nullable = false)
     private boolean isUse;

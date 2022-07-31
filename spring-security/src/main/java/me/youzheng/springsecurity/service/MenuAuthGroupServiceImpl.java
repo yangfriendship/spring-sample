@@ -14,7 +14,7 @@ public class MenuAuthGroupServiceImpl implements MenuAuthGroupService {
 
     @Override
     public Optional<MenuAuthGroup> fetchByMenuName(String menuName) {
-        return this.menuAuthGroupRepository.findFirstByMenuName(menuName);
+        return this.menuAuthGroupRepository.findFirstByGroupName(menuName);
     }
 
 }

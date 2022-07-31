@@ -12,17 +12,21 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 public class JwtLoginProcessorFilter extends AbstractAuthenticationProcessingFilter {
 
     private final ObjectMapper objectMapper;
+    private final GrantedAuthoritiesMapper authoritiesMapper;
 
     public JwtLoginProcessorFilter(String url, ObjectMapper objectMapper,
-        AuthenticationManager authenticationManager) {
+        AuthenticationManager authenticationManager,
+        GrantedAuthoritiesMapper authoritiesMapper) {
         super(new AntPathRequestMatcher(url), authenticationManager);
         this.objectMapper = objectMapper;
+        this.authoritiesMapper = authoritiesMapper;
     }
 
     @Override

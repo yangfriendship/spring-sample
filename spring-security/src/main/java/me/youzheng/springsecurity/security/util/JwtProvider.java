@@ -63,8 +63,8 @@ public class JwtProvider {
             .getBody();
 
         String userId = (String) claims.get("userId");
-        Long userNo = (Long) claims.get("userNo");
-        Long menuAuthGroupNo = (Long) claims.get("menuAuthGroupNo");
+        Long userNo = Long.valueOf((Integer)claims.get("userNo"));
+        Long menuAuthGroupNo = Long.valueOf((Integer)claims.get("menuAuthGroupNo"));
         UserInfo userInfo = UserInfo.builder()
             .userId(userId)
             .userNo(userNo)

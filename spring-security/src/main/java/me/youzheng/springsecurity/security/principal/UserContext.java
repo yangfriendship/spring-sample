@@ -5,16 +5,14 @@ import java.util.Collection;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.util.StringUtils;
 
 public class UserContext implements UserDetails {
 
+    public static final String ROLE_PREFIX = "ROLE_";
     private final UserInfo user;
 
     public UserContext(UserInfo user) {
-        if (user == null
-            || user.getUserNo() == null
-            || !StringUtils.hasLength(user.getPassword())) {
+        if (user == null || user.getUserNo() == null) {
             throw new IllegalArgumentException();
         }
         this.user = user;
@@ -27,7 +25,7 @@ public class UserContext implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return ImmutableList.of(
-            new SimpleGrantedAuthority(this.user.getMenuAuthGroupNo().toString()));
+            new SimpleGrantedAuthority(ROLE_PREFIX + this.user.getMenuAuthGroupNo().toString()));
     }
 
     @Override

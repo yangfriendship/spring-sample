@@ -1,6 +1,9 @@
 package me.youzheng.springsecurity.entity;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -23,10 +26,17 @@ public class Menu {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long menuNo;
 
+    @Column(length = 50)
     private String menuName;
 
-    private HttpMethod httpMethod;
+    @Column(length = 20)
+    private String httpMethod;
 
+    @Column(length = 100)
     private String url;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private MenuType menuType;
 
 }

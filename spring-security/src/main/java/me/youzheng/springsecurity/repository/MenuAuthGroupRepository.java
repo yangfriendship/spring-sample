@@ -6,6 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface MenuAuthGroupRepository extends JpaRepository<MenuAuthGroup, Long> {
 
-    Optional<MenuAuthGroup> findFirstByMenuName(String menuName);
+    Optional<MenuAuthGroup> findFirstByGroupName(String menuName);
 
 }
