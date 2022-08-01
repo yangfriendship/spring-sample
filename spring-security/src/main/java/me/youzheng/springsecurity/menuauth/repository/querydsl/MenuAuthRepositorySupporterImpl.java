@@ -1,6 +1,7 @@
 package me.youzheng.springsecurity.menuauth.repository.querydsl;
 
-import static me.youzheng.springsecurity.menuauth.entity.QMenuAuth.*;
+
+import static me.youzheng.springsecurity.menuauth.entity.QMenuAuth.menuAuth;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;

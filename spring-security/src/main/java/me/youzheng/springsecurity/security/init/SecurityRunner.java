@@ -1,8 +1,9 @@
-package me.youzheng.springsecurity.security.lisntener;
+package me.youzheng.springsecurity.security.init;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import lombok.RequiredArgsConstructor;
 import me.youzheng.springsecurity.menu.entity.Menu;
 import me.youzheng.springsecurity.menu.entity.MenuType;
@@ -17,6 +18,9 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.web.util.pattern.PathPattern;
 
+/**
+ * RequestMappingHandlerMapping 을 가져와 DB 에 등록되지 않은 url 을 자동으로 등록한다.
+ */
 @Component
 @RequiredArgsConstructor
 public class SecurityRunner implements ApplicationRunner {
@@ -34,16 +38,17 @@ public class SecurityRunner implements ApplicationRunner {
                 for (RequestMethod requestMethod : mappingInfo.getMethodsCondition().getMethods()) {
                     String httpMethod = requestMethod.name();
                     for (PathPattern pathPatterns : mappingInfo.getPathPatternsCondition()
-                        .getPatterns()) {
+                            .getPatterns()) {
+                        String pattern = this.replacePathPathVariable(pathPatterns.getPatternString());
                         if (this.menuRepository.existsByHttpMethodAndUrl(httpMethod,
-                            pathPatterns.getPatternString())) {
+                                pattern)) {
                             continue;
                         }
                         Menu menu = Menu.builder()
-                            .httpMethod(httpMethod)
-                            .menuType(MenuType.SERVER)
-                            .url(pathPatterns.getPatternString())
-                            .build();
+                                .httpMethod(httpMethod)
+                                .menuType(MenuType.SERVER)
+                                .url(pattern)
+                                .build();
                         this.menuRepository.save(menu);
                     }
                 }
@@ -51,4 +56,26 @@ public class SecurityRunner implements ApplicationRunner {
         }
         this.urlResourceMapFactoryBean.getObject();
     }
+
+    private String replacePathPathVariable(String url) {
+        char[] chars = url.toCharArray();
+        StringBuilder stringBuilder = new StringBuilder();
+        boolean canWrite = true;
+        for (int i = 0; i < chars.length; i++) {
+            char target = chars[i];
+            if (target == '{') {
+                stringBuilder.append("**");
+                canWrite = false;
+            } else if (target == '}') {
+                canWrite = true;
+            } else {
+                if (canWrite) {
+                    stringBuilder.append(target);
+                }
+            }
+        }
+
+        return stringBuilder.toString();
+    }
+
 }

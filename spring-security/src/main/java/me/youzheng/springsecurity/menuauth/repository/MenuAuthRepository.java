@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 public interface MenuAuthRepository extends JpaRepository<MenuAuth, Long>,
     MenuAuthRepositorySupporter {
 
-    @Query("select ma, m, ma.menuAuthGroup.menuAuthGroupNo from MenuAuth ma join fetch Menu m on ma.menu = m")
+    @Query("select ma, m, ma.menuAuthGroup.menuAuthGroupNo from MenuAuth ma join fetch Menu m on ma.menu = m where m.isUse = true and ma.isUse = true")
     List<MenuAuth> findAllWithMenu();
 
 }

@@ -31,7 +31,7 @@ public class UrlFilterInvocationSecurityMetadataSource implements
         FilterInvocation filterInvocation = (FilterInvocation) object;
         HttpServletRequest request = filterInvocation.getRequest();
 
-        if (requestMap != null) {
+        if (this.requestMap != null) {
             Set<Entry<RequestMatcher, List<ConfigAttribute>>> entries = requestMap.entrySet();
             for (Entry<RequestMatcher, List<ConfigAttribute>> entry : entries) {
                 RequestMatcher matcher = entry.getKey();
@@ -46,7 +46,7 @@ public class UrlFilterInvocationSecurityMetadataSource implements
     @Override
     public Collection<ConfigAttribute> getAllConfigAttributes() {
         Set<ConfigAttribute> result = new HashSet<>();
-        Set<Entry<RequestMatcher, List<ConfigAttribute>>> entries = requestMap.entrySet();
+        Set<Entry<RequestMatcher, List<ConfigAttribute>>> entries = this.requestMap.entrySet();
         for (Entry<RequestMatcher, List<ConfigAttribute>> entry : entries) {
             result.addAll(entry.getValue());
         }

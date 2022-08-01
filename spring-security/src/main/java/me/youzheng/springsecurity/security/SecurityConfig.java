@@ -3,6 +3,7 @@ package me.youzheng.springsecurity.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import lombok.RequiredArgsConstructor;
+import me.youzheng.springsecurity.ipaddress.service.IpAddressService;
 import me.youzheng.springsecurity.property.PropertiesConfig.JwtProperties;
 import me.youzheng.springsecurity.property.PropertiesConfig.SecurityProperties;
 import me.youzheng.springsecurity.menuauth.repository.MenuAuthRepository;
@@ -14,8 +15,10 @@ import me.youzheng.springsecurity.security.handler.JwtAuthenticationSuccessHandl
 import me.youzheng.springsecurity.security.metadatasource.UrlFilterInvocationSecurityMetadataSource;
 import me.youzheng.springsecurity.security.provider.UserAuthenticationProvider;
 import me.youzheng.springsecurity.security.util.JwtProvider;
+import me.youzheng.springsecurity.security.voter.IpAddressAccessVoter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AffirmativeBased;
 import org.springframework.security.access.vote.RoleVoter;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -44,6 +47,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final JwtProperties jwtProperties;
     private final SecurityProperties securityProperties;
     private final MenuAuthRepository menuAuthRepository;
+    private final IpAddressService ipAddressService;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -94,12 +98,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public GrantedAuthoritiesMapper authoritiesMapper() {
         SimpleAuthorityMapper mapper = new SimpleAuthorityMapper();
-        mapper.setPrefix("MENU_AUTH_GROUP");
+        mapper.setPrefix("MENU_AUTH_GROUP_");
         mapper.setConvertToUpperCase(true);
-//        mapper.setDefaultAuthority("1"); // 만약 기본 권한 그룹을 설정할 것이면 이걸 사용하자!
         return mapper;
     }
-
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
@@ -122,19 +124,32 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new JwtAuthenticationSuccessHandler(this.objectMapper, this.jwtProvider());
     }
 
+    /**
+     * 인가 담당 객체
+     * @return
+     */
     @Bean
     public FilterSecurityInterceptor filterSecurityInterceptor() {
-        PermitAllFilter securityInterceptor = new PermitAllFilter("/api/menus");
+        PermitAllFilter securityInterceptor = new PermitAllFilter("/api/menus/ok");
 
         securityInterceptor.setSecurityMetadataSource(
             this.urlFilterInvocationSecurityMetadataSource());
 
         securityInterceptor.setAuthenticationManager(this.authenticationManagerBean());
-
-        AffirmativeBased affirmativeBased = new AffirmativeBased(ImmutableList.of(new RoleVoter()));
-        securityInterceptor.setAccessDecisionManager(affirmativeBased);
-
+        securityInterceptor.setAccessDecisionManager(this.affirmativeBased());
         return securityInterceptor;
+    }
+
+    /**
+     * 인가 로직
+     * AffirmativeBased: Voter 중 하나라도 AccessDenied 라면 접근 거절된다.
+     * @return
+     */
+    @Bean
+    public AccessDecisionManager affirmativeBased() {
+        AffirmativeBased affirmativeBased = new AffirmativeBased(
+                ImmutableList.of(this.ipAddressAccessVoter(),new RoleVoter()));
+        return affirmativeBased;
     }
 
     @Bean
@@ -150,6 +165,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public UrlResourceMapFactoryBean urlResourceMapFactoryBean() {
         return new UrlResourceMapFactoryBean(this.menuAuthRepository);
+    }
+
+    @Bean
+    public IpAddressAccessVoter ipAddressAccessVoter() {
+        return new IpAddressAccessVoter(this.ipAddressService);
     }
 
 }
