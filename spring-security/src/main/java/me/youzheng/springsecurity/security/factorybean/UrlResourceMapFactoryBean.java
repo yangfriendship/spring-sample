@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import me.youzheng.springsecurity.menu.entity.Menu;
 import me.youzheng.springsecurity.menuauth.entity.MenuAuth;
@@ -21,12 +22,12 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 
 @RequiredArgsConstructor
 public class UrlResourceMapFactoryBean implements
-    FactoryBean<LinkedHashMap<RequestMatcher, List<ConfigAttribute>>> {
+    FactoryBean<ConcurrentHashMap<RequestMatcher, List<ConfigAttribute>>> {
 
     private final MenuAuthRepository menuAuthRepository;
 
     @Override
-    public LinkedHashMap<RequestMatcher, List<ConfigAttribute>> getObject() throws Exception {
+    public ConcurrentHashMap<RequestMatcher, List<ConfigAttribute>> getObject() throws Exception {
         List<MenuAuth> menuAuths = this.menuAuthRepository.findAllWithMenu();
 
         Map<Menu, List<MenuAuth>> menuListMap = menuAuths.stream()
@@ -34,7 +35,7 @@ public class UrlResourceMapFactoryBean implements
 
         Set<Entry<Menu, List<MenuAuth>>> entries = menuListMap.entrySet();
 
-        LinkedHashMap<RequestMatcher, List<ConfigAttribute>> result = new LinkedHashMap<>();
+        ConcurrentHashMap<RequestMatcher, List<ConfigAttribute>> result = new ConcurrentHashMap<>();
         for (Entry<Menu, List<MenuAuth>> entry : entries) {
             Menu menu = entry.getKey();
             List<ConfigAttribute> configAttributes = new ArrayList<>();

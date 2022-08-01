@@ -2,11 +2,12 @@ package me.youzheng.springsecurity.security.metadatasource;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.servlet.http.HttpServletRequest;
+import me.youzheng.springsecurity.security.factorybean.UrlResourceMapFactoryBean;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.access.intercept.FilterInvocationSecurityMetadataSource;
@@ -15,11 +16,13 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 public class UrlFilterInvocationSecurityMetadataSource implements
     FilterInvocationSecurityMetadataSource {
 
-    private LinkedHashMap<RequestMatcher, List<ConfigAttribute>> requestMap;
+    private ConcurrentHashMap<RequestMatcher, List<ConfigAttribute>> requestMap;
+    private final UrlResourceMapFactoryBean urlResourceMapFactoryBean;
 
     public UrlFilterInvocationSecurityMetadataSource(
-        LinkedHashMap<RequestMatcher, List<ConfigAttribute>> requestMap) {
-        this.requestMap = requestMap;
+        UrlResourceMapFactoryBean urlResourceMapFactoryBean) {
+        this.urlResourceMapFactoryBean = urlResourceMapFactoryBean;
+        this.reloadDataSource();
     }
 
     @Override
@@ -53,6 +56,14 @@ public class UrlFilterInvocationSecurityMetadataSource implements
     @Override
     public boolean supports(Class<?> clazz) {
         return FilterInvocation.class.isAssignableFrom(clazz);
+    }
+
+    public void reloadDataSource() {
+        try {
+            this.requestMap = urlResourceMapFactoryBean.getObject();
+        } catch (Exception e) {
+            throw new RuntimeException();
+        }
     }
 
 }

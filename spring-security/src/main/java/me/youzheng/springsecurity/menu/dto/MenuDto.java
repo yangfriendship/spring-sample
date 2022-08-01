@@ -1,10 +1,13 @@
 package me.youzheng.springsecurity.menu.dto;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import me.youzheng.springsecurity.menu.entity.Menu;
 import me.youzheng.springsecurity.menu.entity.MenuType;
 
 @Data
-public class MenuResponse {
+@EqualsAndHashCode(of = {"menuNo"})
+public class MenuDto implements Comparable<MenuDto> {
 
     private Long menuNo;
 
@@ -18,14 +21,20 @@ public class MenuResponse {
 
     private boolean isUse;
 
-    public static MenuResponse from(MenuDto source) {
-        MenuResponse result = new MenuResponse();
+    public static MenuDto from(Menu source) {
+        MenuDto result = new MenuDto();
         result.setMenuNo(source.getMenuNo());
         result.setMenuName(source.getMenuName());
-        result.setMenuType(source.getMenuType());
+        result.setHttpMethod(source.getHttpMethod());
         result.setUrl(source.getUrl());
         result.setUse(source.isUse());
-        result.setHttpMethod(source.getHttpMethod());
+        result.setMenuType(source.getMenuType());
         return result;
     }
+
+    @Override
+    public int compareTo(MenuDto that) {
+        return this.menuNo.compareTo(that.menuNo);
+    }
+
 }

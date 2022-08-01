@@ -1,6 +1,7 @@
 package me.youzheng.springsecurity.menuauth.entity;
 
 import java.util.Objects;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -36,6 +37,9 @@ public class MenuAuth {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "menuAuthGroupNo")
     private MenuAuthGroup menuAuthGroup;
+
+    @Column(nullable = false)
+    private boolean isUse;
 
     @Override
     public boolean equals(Object o) {

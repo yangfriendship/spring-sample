@@ -9,6 +9,7 @@ import me.youzheng.springsecurity.menuauth.repository.MenuAuthRepository;
 import me.youzheng.springsecurity.security.factorybean.UrlResourceMapFactoryBean;
 import me.youzheng.springsecurity.security.filter.JwtAuthenticationFilter;
 import me.youzheng.springsecurity.security.filter.JwtLoginProcessorFilter;
+import me.youzheng.springsecurity.security.filter.PermitAllFilter;
 import me.youzheng.springsecurity.security.handler.JwtAuthenticationSuccessHandler;
 import me.youzheng.springsecurity.security.metadatasource.UrlFilterInvocationSecurityMetadataSource;
 import me.youzheng.springsecurity.security.provider.UserAuthenticationProvider;
@@ -123,7 +124,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public FilterSecurityInterceptor filterSecurityInterceptor() {
-        FilterSecurityInterceptor securityInterceptor = new FilterSecurityInterceptor();
+        PermitAllFilter securityInterceptor = new PermitAllFilter("/api/menus");
 
         securityInterceptor.setSecurityMetadataSource(
             this.urlFilterInvocationSecurityMetadataSource());
@@ -140,7 +141,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public UrlFilterInvocationSecurityMetadataSource urlFilterInvocationSecurityMetadataSource() {
         try {
             return new UrlFilterInvocationSecurityMetadataSource(
-                this.urlResourceMapFactoryBean().getObject());
+                this.urlResourceMapFactoryBean());
         } catch (Exception e) {
             throw new RuntimeException();
         }

@@ -10,4 +10,9 @@ public class MenuAuthServiceImpl implements MenuAuthService {
 
     private final MenuAuthRepository menuAuthRepository;
 
+    @Override
+    public long updateAllUseByMenuNo(Long menuNo, boolean isUse) {
+        return this.menuAuthRepository.updateAllUseByMenuNo(menuNo, isUse);
+    }
+
 }

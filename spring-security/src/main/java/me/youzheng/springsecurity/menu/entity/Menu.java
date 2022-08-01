@@ -38,4 +38,7 @@ public class Menu {
     @Column(length = 20)
     private MenuType menuType;
 
+    @Column(nullable = false)
+    private boolean isUse;
+
 }
