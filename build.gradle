@@ -96,3 +96,9 @@ project(':spring-security') {
         runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.11.1'
     }
 }
+
+project(':oauth2-resource-server') {
+    dependencies {
+        implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    }
+}
