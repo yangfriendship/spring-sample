@@ -19,6 +19,7 @@ import me.youzheng.springsecurity.security.voter.IpAddressAccessVoter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.AccessDecisionManager;
+import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.vote.AffirmativeBased;
 import org.springframework.security.access.vote.RoleVoter;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -53,22 +54,22 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
 
         http.httpBasic()
-            .disable()
-            .csrf()
-            .disable()
-            .formLogin()
-            .disable();
+                .disable()
+                .csrf()
+                .disable()
+                .formLogin()
+                .disable();
 
         http.addFilterBefore(this.characterEncodingFilter, CsrfFilter.class);
         http.addFilterBefore(jwtAuthenticationFilter(),
-            UsernamePasswordAuthenticationFilter.class);
+                UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(this.jwtLoginProcessorFilter(),
-            UsernamePasswordAuthenticationFilter.class);
+                UsernamePasswordAuthenticationFilter.class);
 
         http.addFilterBefore(this.filterSecurityInterceptor(), FilterSecurityInterceptor.class);
 
         http.sessionManagement()
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
     }
 
@@ -85,13 +86,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public JwtProvider jwtProvider() {
         return new JwtProvider(this.jwtProperties.getSecretKey(),
-            this.jwtProperties.getExpiredSeconds());
+                this.jwtProperties.getExpiredSeconds());
     }
 
     @Bean
     public UserAuthenticationProvider userAuthenticationProvider() {
         UserAuthenticationProvider provider = new UserAuthenticationProvider(
-            this.userDetailsService, this.passwordEncoder);
+                this.userDetailsService, this.passwordEncoder);
         return provider;
     }
 
@@ -111,10 +112,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public JwtLoginProcessorFilter jwtLoginProcessorFilter() {
         JwtLoginProcessorFilter loginProcessorFilter = new JwtLoginProcessorFilter(
-            this.securityProperties.getLoginUrl(),
-            this.objectMapper, this.authenticationManagerBean(), this.authoritiesMapper());
+                this.securityProperties.getLoginUrl(),
+                this.objectMapper, this.authenticationManagerBean(), this.authoritiesMapper());
         loginProcessorFilter.setAuthenticationSuccessHandler(
-            this.jwtAuthenticationSuccessHandler());
+                this.jwtAuthenticationSuccessHandler());
 
         return loginProcessorFilter;
     }
@@ -126,6 +127,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     /**
      * 인가 담당 객체
+     *
      * @return
      */
     @Bean
@@ -133,7 +135,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         PermitAllFilter securityInterceptor = new PermitAllFilter("/api/menus/ok");
 
         securityInterceptor.setSecurityMetadataSource(
-            this.urlFilterInvocationSecurityMetadataSource());
+                this.urlFilterInvocationSecurityMetadataSource());
 
         securityInterceptor.setAuthenticationManager(this.authenticationManagerBean());
         securityInterceptor.setAccessDecisionManager(this.affirmativeBased());
@@ -143,20 +145,27 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     /**
      * 인가 로직
      * AffirmativeBased: Voter 중 하나라도 AccessDenied 라면 접근 거절된다.
+     *
      * @return
      */
     @Bean
     public AccessDecisionManager affirmativeBased() {
-        AffirmativeBased affirmativeBased = new AffirmativeBased(
-                ImmutableList.of(this.ipAddressAccessVoter(),new RoleVoter()));
-        return affirmativeBased;
+        return new AffirmativeBased(
+                ImmutableList.of(this.ipAddressAccessVoter(),
+                        roleVoter()));
+    }
+
+    @Bean
+    public AccessDecisionVoter<Object> roleVoter() {
+        RoleVoter voter = new RoleVoter();
+        return voter;
     }
 
     @Bean
     public UrlFilterInvocationSecurityMetadataSource urlFilterInvocationSecurityMetadataSource() {
         try {
             return new UrlFilterInvocationSecurityMetadataSource(
-                this.urlResourceMapFactoryBean());
+                    this.urlResourceMapFactoryBean());
         } catch (Exception e) {
             throw new RuntimeException();
         }
