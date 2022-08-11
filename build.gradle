@@ -79,6 +79,7 @@ subprojects {
         annotationProcessor "jakarta.annotation:jakarta.annotation-api"
         implementation 'org.springframework.boot:spring-boot-starter-web'
 
+        compileOnly 'org.projectlombok:lombok'
 
     }
 }
@@ -90,9 +91,8 @@ project(':spring-security') {
         runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.1'
         runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.11.1'
 
-        // auth
+        // security
         implementation 'org.springframework.boot:spring-boot-starter-security'
-        compileOnly 'org.projectlombok:lombok'
         testImplementation 'org.springframework.security:spring-security-test'
     }
 }
@@ -100,5 +100,20 @@ project(':spring-security') {
 project(':oauth2-resource-server') {
     dependencies {
         implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    }
+}
+
+project(':spring-security-redis') {
+
+    dependencies {
+        // security
+        implementation 'org.springframework.boot:spring-boot-starter-security'
+        testImplementation 'org.springframework.security:spring-security-test'
+
+        // redis
+        implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+        implementation 'org.springframework.session:spring-session-data-redis'
+        implementation 'org.springframework.session:spring-session-data-redis'
+
     }
 }
