@@ -117,3 +117,16 @@ project(':spring-security-redis') {
 
     }
 }
+
+project(':spring-jpa-stream') {
+    dependencies {
+    }
+}
+
+
+project(':spring-aop') {
+
+    dependencies {
+        implementation 'org.springframework.boot:spring-boot-starter-aop'
+    }
+}
