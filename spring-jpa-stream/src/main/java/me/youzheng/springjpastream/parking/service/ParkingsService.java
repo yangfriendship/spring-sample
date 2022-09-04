@@ -23,7 +23,7 @@ public class ParkingsService {
     @Transactional(readOnly = true)
     public void action() {
         LocalDate from = LocalDate.of(2017, 1, 1);
-        LocalDate to = LocalDate.of(2017, 7, 1).minusDays(1);
+        LocalDate to = LocalDate.of(2018, 1, 1).minusDays(1);
         long startTime = System.currentTimeMillis();
         try (Stream<Parkings> parkingsStream = this.parkingsRepository.collectParkings(from, to)) {
             parkingsStream
