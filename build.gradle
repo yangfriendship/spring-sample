@@ -130,3 +130,10 @@ project(':spring-aop') {
         implementation 'org.springframework.boot:spring-boot-starter-aop'
     }
 }
+
+project(':spring-data') {
+
+    dependencies {
+        implementation 'org.springframework.boot:spring-boot-starter-aop'
+    }
+}
