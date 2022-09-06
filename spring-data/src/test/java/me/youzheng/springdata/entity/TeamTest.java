@@ -1,27 +1,26 @@
 package me.youzheng.springdata.entity;
 
 import org.hibernate.Hibernate;
-import org.hibernate.cfg.annotations.NamedEntityGraphDefinition;
-import org.junit.jupiter.api.Assertions;
+import org.hibernate.Interceptor;
+import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.jdbc.Sql;
 
+import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceContext;
-
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+import static me.youzheng.springdata.config.ScriptConfig.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @DataJpaTest
 @ExtendWith(MockitoExtension.class)
@@ -31,6 +30,10 @@ public class TeamTest {
 
     @PersistenceContext
     EntityManager entityManager;
+    @Autowired
+    EntityManagerFactory entityManagerFactory;
+//    @Autowired
+//    Interceptor interceptor;
 
     @BeforeEach
     public void init() {
@@ -42,7 +45,7 @@ public class TeamTest {
         List<Team> results = this.entityManager.createQuery("select t from Team t", Team.class)
                 .getResultList();
         assertNotNull(this.entityManager);
-        assertEquals(3, results.size());
+        assertEquals(TEAM_SIZE, results.size());
     }
 
     @Test
@@ -60,26 +63,39 @@ public class TeamTest {
         assertEquals(team.getTeamNo(), result.getTeamNo());
     }
 
+    /**
+     * left join test
+     */
+    @Test
+    public void manyToOneJoin() {
+        List<Employee> result = this.entityManager.createQuery("select e from Employee e left join Team t on e.team = t", Employee.class).getResultList();
+        Employee employee = result.get(0);
+        assertTrue(Hibernate.isPropertyInitialized(employee.getTeam().getTeamNo(), "teamNo"));
+        assertFalse(Hibernate.isPropertyInitialized(employee.getTeam(), "teamName"));
+
+        // Team.name 에 접근하는 순간 proxy 에 의하여 fk 를 이용해 team 정보를 가져온다.
+        String teamName = employee.getTeam().getTeamName();
+        assertTrue(Hibernate.isPropertyInitialized(employee.getTeam(), "teamName"));
+    }
+
+    /**
+     * Sample Data 의 team4 에 소속된 직원은 없다.
+      */
     @Test
     public void fetchJoinTest() {
-        List<Team> resultList = this.entityManager.createQuery("select distinct t from Team t left join Employee e on t = e.team", Team.class).getResultList();
+        List<Team> result = this.entityManager.createQuery("select distinct t from Team t join fetch Employee  e on e.team = t", Team.class).getResultList();
+        Optional<Team> dontHaveEmployee = result.stream()
+                .filter(team -> team.getTeamName().equals(NO_EMPLOYEE_TEAM_NAME))
+                .findFirst();
 
-        assertEquals(3, resultList.size());
-
-        Team team = resultList.get(0);
+        // fetch join 은 inner join 이기 때문에 직원이 없는 team 은 조회되지 않는다.
+        assertFalse(dontHaveEmployee.isPresent());
     }
 
     @Test
-    public void manyToOneJoin() {
-
-        List<Employee> result = this.entityManager.createQuery("select e from Employee e left join Team t on e.team = t", Employee.class).getResultList();
-        Employee employee = result.get(0);
-        Long teamNo = employee.getTeam().getTeamNo();
-        boolean result2 = Hibernate.isPropertyInitialized(employee.getTeam(), "teamNo");
-        boolean result3 = Hibernate.isPropertyInitialized(employee, "team.teamName");
-        System.out.println("result = " + result2);
-        System.out.println("result3 = " + result3);
-        assertNotNull(teamNo);
+    public void t1() {
+//        this.entityManagerFactory.addNamedEntityGraph("dfasdf", new EntityGraph<Team>() {
+//        });
     }
 
 }

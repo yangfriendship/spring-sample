@@ -18,3 +18,5 @@ insert into employee(name, team_no) select concat('user',12), team_no from team 
 insert into employee(name, team_no) select concat('user',13), team_no from team where team_name = 'team3';
 insert into employee(name, team_no) select concat('user',14), team_no from team where team_name = 'team3';
 insert into employee(name, team_no) select concat('user',15), team_no from team where team_name = 'team3';
+
+insert into team(team_name) values ('team4');

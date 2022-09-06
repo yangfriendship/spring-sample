@@ -1,6 +1,8 @@
 package me.youzheng.springdata.entity;
 
 import lombok.*;
+import org.springframework.context.event.EventListener;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 
@@ -15,6 +17,7 @@ import javax.persistence.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@EntityListeners(AuditingEntityListener.class)
 public class Employee {
 
     @Id
