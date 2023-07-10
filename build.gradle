@@ -84,6 +84,7 @@ project(':core-domain') {
     }
 
     dependencies {
+        implementation 'org.springframework.security:spring-security-core'
 
     }
 
