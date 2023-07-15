@@ -4,6 +4,7 @@ import org.springframework.core.ExceptionDepthComparator;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -11,18 +12,30 @@ public class ExceptionHandlerComposite implements ExceptionHandler {
 
     private final Map<Class<? extends Throwable>, ExceptionHandler> exceptionHandlerCache = new ConcurrentHashMap<>(128);
 
-    private final List<ExceptionHandler> exceptionHandlers;
-
     public ExceptionHandlerComposite(final List<ExceptionHandler> exceptionHandlers) {
-        this.exceptionHandlers = Collections.unmodifiableList(exceptionHandlers);
+        for (final ExceptionHandler exceptionHandler : exceptionHandlers) {
+            isAlreadyRegistered(exceptionHandler);
+            this.exceptionHandlerCache.put(exceptionHandler.getType(), exceptionHandler);
+        }
+    }
+
+    public ExceptionHandlerComposite(final Map<Class<? extends Throwable>, ExceptionHandler> exceptionHandlers) {
+        this.exceptionHandlerCache.putAll(exceptionHandlers);
+    }
+
+    private void isAlreadyRegistered(final ExceptionHandler exceptionHandler) {
+        if (this.exceptionHandlerCache.containsKey(exceptionHandler.getType())) {
+            throw new IllegalArgumentException("이미 등록된 Exception 입니다. " + exceptionHandler.getType().getName());
+        }
     }
 
     public void registerHandler(final ExceptionHandler handler) {
+        isAlreadyRegistered(handler);
         this.exceptionHandlerCache.put(handler.getType(), handler);
     }
 
     @Override
-    public void handle(final ServletRequest request, final ServletResponse response, final Exception exception) {
+    public void handle(final ServletRequest request, final ServletResponse response, final Exception exception) throws IOException {
         final ExceptionHandler exceptionHandler = this.getExceptionHandler(exception);
         if (exceptionHandler == null) {
             throw new NullPointerException(); // TODO create custom exception!!
@@ -42,7 +55,8 @@ public class ExceptionHandlerComposite implements ExceptionHandler {
 
         final List<Class<? extends Throwable>> candidateHandlers = this.getCandidateExceptions(exception);
         final Class<? extends Throwable> handleType = this.getHandleTypes(exception, candidateHandlers);
-        return this.exceptionHandlerCache.put(exception.getClass(), this.exceptionHandlerCache.get(handleType));
+        this.exceptionHandlerCache.put(exception.getClass(), this.exceptionHandlerCache.get(handleType));
+        return this.exceptionHandlerCache.get(exception.getClass());
     }
 
     private Class<? extends Throwable> getHandleTypes(final Exception exception, final List<Class<? extends Throwable>> matches) {
