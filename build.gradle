@@ -59,12 +59,13 @@ subprojects {
         implementation 'org.springframework.boot:spring-boot-starter-web'
 
         // querydsl
-        // for QueryDSL
         implementation "com.querydsl:querydsl-core:${queryDslVersion}"
         implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
         annotationProcessor "com.querydsl:querydsl-apt:${queryDslVersion}:jpa"
         annotationProcessor "jakarta.persistence:jakarta.persistence-api"
         annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+
+        implementation 'io.vavr:vavr:0.10.4'
     }
 
 }
@@ -72,14 +73,18 @@ subprojects {
 project(':core') {
 
     bootJar {
-        enabled = true
-    }
-
-    jar {
         enabled = false
     }
 
+    jar {
+        enabled = true
+    }
+
     dependencies {
+        implementation 'org.springframework:spring-test'
+        implementation 'org.springframework.security:spring-security-core'
+        implementation 'org.springframework.security:spring-security-web'
+        implementation 'org.springframework.security:spring-security-config'
 
     }
 
@@ -97,12 +102,34 @@ project(':core-domain') {
 
     dependencies {
         implementation 'org.springframework.security:spring-security-core'
-
+        implementation project(':core')
     }
 
 }
 
 project(':core-configure') {
+
+    bootJar {
+        enabled = false
+    }
+
+    jar {
+        enabled = true
+    }
+
+    dependencies {
+        implementation project(':core')
+        implementation project('::core-domain')
+        implementation 'org.springframework.security:spring-security-core'
+        implementation 'org.springframework.security:spring-security-web'
+        implementation 'org.springframework.security:spring-security-config'
+        implementation 'org.springframework.session:spring-session-data-redis'
+        implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    }
+
+}
+
+project(':api-server') {
 
     bootJar {
         enabled = true
@@ -113,7 +140,15 @@ project(':core-configure') {
     }
 
     dependencies {
+        implementation project(':core')
+        implementation project(':core-configure')
+        implementation project(':core-domain')
+        implementation 'org.springframework.boot:spring-boot-starter-security'
+        implementation 'org.springframework.boot:spring-boot-starter-validation'
+        implementation 'org.springframework.session:spring-session-data-redis'
 
+        implementation 'org.mapstruct:mapstruct:1.5.3.Final'
+        annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.3.Final'
     }
 
 }
