@@ -9,3 +9,5 @@ rootProject.name = 'spring-sample'
 include 'core'
 include 'core-domain'
 include 'core-configure'
+
+include 'api-server'
