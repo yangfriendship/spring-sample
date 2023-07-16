@@ -1,5 +1,6 @@
 package me.youzheng.core.configure.web;
 
+import me.youzheng.core.code.ErrorCode;
 import me.youzheng.core.exception.ApiErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,7 +28,7 @@ class ApiErrorCodeExceptionHandlerServiceTest {
 
     }
 
-    @ApiErrorCode(code = "ERROR0002")
+    @ApiErrorCode(code = ErrorCode.FORBIDDEN)
     static class HasApiErrorCodeAnnotationException extends RuntimeException {
 
     }
@@ -51,19 +52,18 @@ class ApiErrorCodeExceptionHandlerServiceTest {
         assertThat(this.exceptionHandlerService.findHttpStatus(new NoAnnotationException()))
                 .describedAs("@ResponseStatus 이 없기 때문에 기본 HttpStatus '%s'를 반환해야한다.", ApiErrorCodeExceptionHandlerService.DEFAULT_HTTP_STATUS)
                 .isEqualTo(ApiErrorCodeExceptionHandlerService.DEFAULT_HTTP_STATUS);
-//                .isEqualTo(HttpStatus.CONFLICT);
     }
 
     @DisplayName("@ApiErrorCode 코드 추출 테스트")
     @Test
     void 예외_클래스에서_ApiErrorCode_어노테이션_추출_테스트() {
         assertThat(this.exceptionHandlerService.findErrorCode(new HasApiErrorCodeAnnotationException()))
-                .describedAs("@ApiErrorCode 에 정의된 code 값을 가져와야한다.")
-                .isEqualTo("ERROR0002");
+                .describedAs("'@ApiErrorCode' 에 정의된 code 값을 가져와야한다.")
+                .isEqualTo(ErrorCode.FORBIDDEN.getCode());
 
         assertThat(this.exceptionHandlerService.findErrorCode(new NoAnnotationException()))
-                .describedAs("@ApiErrorCode 가 없기 때문에 기본값 '%s' 을 가져와야한다", ApiErrorCodeExceptionHandlerService.DEFAULT_ERROR_CODE)
-                .isEqualTo(ApiErrorCodeExceptionHandlerService.DEFAULT_ERROR_CODE);
+                .describedAs("'@ApiErrorCode' 가 없기 때문에 기본값 '%s' 을 가져와야한다", ApiErrorCodeExceptionHandlerService.DEFAULT_ERROR_CODE.getCode())
+                .isEqualTo(ApiErrorCodeExceptionHandlerService.DEFAULT_ERROR_CODE.getCode());
     }
 
 }

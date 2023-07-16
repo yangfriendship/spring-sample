@@ -1,6 +1,7 @@
 package me.youzheng.core.configure.web;
 
 import lombok.RequiredArgsConstructor;
+import me.youzheng.core.code.ErrorCode;
 import me.youzheng.core.exception.ApiErrorCode;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpStatus;
@@ -13,7 +14,7 @@ import java.util.Optional;
 public class ApiErrorCodeExceptionHandlerService implements ExceptionHandlerService {
 
     public static final HttpStatus DEFAULT_HTTP_STATUS = HttpStatus.BAD_REQUEST;
-    public static final String DEFAULT_ERROR_CODE = ApiErrorCode.DEFAULT_ERROR_CODE;
+    public static final ErrorCode DEFAULT_ERROR_CODE = ApiErrorCode.DEFAULT_ERROR_CODE;
 
     @Override
     public HttpStatus findHttpStatus(final Exception exception) {
@@ -28,7 +29,7 @@ public class ApiErrorCodeExceptionHandlerService implements ExceptionHandlerServ
         return Optional.ofNullable(exception)
                 .map(this::findApiErrorCode)
                 .map(this::getErrorCode)
-                .orElse(DEFAULT_ERROR_CODE);
+                .orElse(DEFAULT_ERROR_CODE.getCode());
     }
 
     private <A extends Annotation> A findAnnotation(final Exception exception, final Class<A> target) {
@@ -48,6 +49,9 @@ public class ApiErrorCodeExceptionHandlerService implements ExceptionHandlerServ
     }
 
     private String getErrorCode(final ApiErrorCode apiErrorCode) {
-        return apiErrorCode.code();
+        return Optional.ofNullable(apiErrorCode.code())
+                .orElse(ApiErrorCode.DEFAULT_ERROR_CODE)
+                .getCode();
     }
+
 }
