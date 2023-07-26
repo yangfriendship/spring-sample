@@ -1,0 +1,9 @@
+spring:
+  redis:
+    host: localhost
+    password: dnwjd123@@
+    port: 6379
+    client-type: lettuce
+    username: default
+  session:
+    store-type: redis
