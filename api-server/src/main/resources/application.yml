@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: api-server
+  profiles:
+    include:
+      - datasource
+      - redis
+    active: local
+logging:
+  level:
+    org:
+      springframework.transaction.**: trace
