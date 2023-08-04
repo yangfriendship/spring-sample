@@ -11,10 +11,12 @@ import me.youzheng.core.web.ApiResponse;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.util.StreamUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.OutputStream;
 
 @RequiredArgsConstructor
 public class ApiAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
@@ -34,10 +36,12 @@ public class ApiAuthenticationSuccessHandler implements AuthenticationSuccessHan
         if (!authentication.isAuthenticated() || !(authentication instanceof AuthenticatedUser)) {
             throw new UnauthorizedException();
         }
-        final User user = unwrapUser(authentication);
 
-        final JsonGenerator jsonGenerator = this.objectMapper.createGenerator(response.getOutputStream());
-        this.objectMapper.writer().writeValue(jsonGenerator, ApiResponse.success(user));
+        final User user = unwrapUser(authentication);
+        final OutputStream outputStream = StreamUtils.nonClosing(response.getOutputStream());
+        try (final JsonGenerator jsonGenerator = this.objectMapper.createGenerator(outputStream)) {
+            this.objectMapper.writer().writeValue(jsonGenerator, ApiResponse.success(user));
+        }
     }
 
     private User unwrapUser(final Authentication authentication) {
