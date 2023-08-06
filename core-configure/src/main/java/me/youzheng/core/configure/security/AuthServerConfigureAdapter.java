@@ -15,8 +15,11 @@ import org.springframework.security.config.annotation.SecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.DefaultSecurityFilterChain;
-import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
-import org.springframework.session.web.http.SessionRepositoryFilter;
+import org.springframework.security.web.authentication.session.ChangeSessionIdAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.CompositeSessionAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.ConcurrentSessionControlAuthenticationStrategy;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.session.security.SpringSessionBackedSessionRegistry;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -62,18 +65,21 @@ public class AuthServerConfigureAdapter extends SecurityConfigurerAdapter<Defaul
     public void init(final HttpSecurity http) throws Exception {
         Assert.notNull(http, "HttpSecurity can't be null!");
         disableOtherConfigure(http);
-        http.sessionManagement();
 
         this.applicationContext = http.getSharedObject(ApplicationContext.class);
         this.httpSecurity = http;
         Assert.notNull(this.applicationContext, "ApplicationContext can't be null!");
 
-        http.addFilterAfter(this.applicationContext.getBean(SessionRepositoryFilter.class), PreExceptionFilter.class);
+
+        http.sessionManagement(c -> {
+            c.maximumSessions(2);
+            c.sessionConcurrency(cs -> cs.sessionRegistry(this.applicationContext.getBean(SpringSessionBackedSessionRegistry.class)));
+        });
         Filter loginFilter = this.createLoginFilter(http);
-        http.addFilterBefore(loginFilter, AnonymousAuthenticationFilter.class);
+        http.addFilterAfter(loginFilter, PreExceptionFilter.class);
 
         Filter logoutFilter = this.createLogoutFilter();
-        http.addFilterBefore(logoutFilter, AnonymousAuthenticationFilter.class);
+        http.addFilterAfter(logoutFilter, PreExceptionFilter.class);
     }
 
     protected Filter createLogoutFilter() {
@@ -103,7 +109,31 @@ public class AuthServerConfigureAdapter extends SecurityConfigurerAdapter<Defaul
         apiLoginProcessFilter.setAuthenticationManager(authenticationManager);
         apiLoginProcessFilter.setAuthenticationManager(this.getAuthenticationManager(http));
         apiLoginProcessFilter.setAuthenticationSuccessHandler(getSuccessHandler());
+        final SessionRegistry sessionRegistry = this.applicationContext.getBean(SessionRegistry.class);
+        final CompositeSessionAuthenticationStrategy sessionAuthenticationStrategy
+                = new CompositeSessionAuthenticationStrategy(
+                List.of(
+                        new ChangeSessionIdAuthenticationStrategy()
+                        , new ConcurrentSessionControlAuthenticationStrategy(sessionRegistry)
+                )
+        );
+
+        final HttpSessionSecurityContextRepository contextRepository = getContextRepository();
+        apiLoginProcessFilter.setSecurityContextRepository(contextRepository);
+
+        apiLoginProcessFilter.setSessionAuthenticationStrategy(sessionAuthenticationStrategy);
         return apiLoginProcessFilter;
+    }
+
+    /**
+     * RedisIndexedSessionRepository 에서 principalNameKey 를 FindByIndexNameSessionRepository 의 상수를 이용하도록 하드코딩되어있다.
+     * RedisIndexedSessionRepository 로 세션 관리르 한다면 HttpSessionSecurityContextRepository 의  springSecurityContextKey 를 변경해서는 안된다.
+     */
+    protected HttpSessionSecurityContextRepository getContextRepository() {
+        final HttpSessionSecurityContextRepository contextRepository
+                = new HttpSessionSecurityContextRepository();
+        contextRepository.setSpringSecurityContextKey("USER_CONTEXT");
+        return contextRepository;
     }
 
     private ApiAuthenticationSuccessHandler getSuccessHandler() {
