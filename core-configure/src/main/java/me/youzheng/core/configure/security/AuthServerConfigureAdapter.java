@@ -7,10 +7,7 @@ import me.youzheng.core.configure.security.filter.SessionLogoutFilter;
 import me.youzheng.core.configure.security.handler.ApiAuthenticationSuccessHandler;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationContext;
-import org.springframework.security.authentication.AuthenticationEventPublisher;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.*;
 import org.springframework.security.config.annotation.SecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.session.SessionRegistry;
@@ -37,7 +34,6 @@ public class AuthServerConfigureAdapter extends SecurityConfigurerAdapter<Defaul
     private String loginUrl = "/api/login";
     private String logoutUrl = "/api/logout";
     private String sessionCookieName = "YSESSION";
-    private HttpSecurity httpSecurity;
 
     protected AuthServerConfigureAdapter() {
     }
@@ -67,9 +63,7 @@ public class AuthServerConfigureAdapter extends SecurityConfigurerAdapter<Defaul
         disableOtherConfigure(http);
 
         this.applicationContext = http.getSharedObject(ApplicationContext.class);
-        this.httpSecurity = http;
         Assert.notNull(this.applicationContext, "ApplicationContext can't be null!");
-
 
         http.sessionManagement(c -> {
             c.maximumSessions(2);
@@ -80,6 +74,16 @@ public class AuthServerConfigureAdapter extends SecurityConfigurerAdapter<Defaul
 
         Filter logoutFilter = this.createLogoutFilter();
         http.addFilterAfter(logoutFilter, PreExceptionFilter.class);
+
+    }
+
+    protected DefaultAuthenticationEventPublisher getApplicationEventPublisherIfPresent() {
+        final Map<String, DefaultAuthenticationEventPublisher> beans = this.applicationContext.getBeansOfType(DefaultAuthenticationEventPublisher.class);
+        if (CollectionUtils.isEmpty(beans) || beans.size() > 1) {
+            final String beanNames = String.join(",", beans.keySet());
+            throw new IllegalArgumentException("ApplicationEventPublisher 타입 Bean 이 0개 또는 1개 이상 존재합니다. Beans: [" + beanNames + "]");
+        }
+        return new ArrayList<>(beans.values()).get(0);
     }
 
     protected Filter createLogoutFilter() {
@@ -94,7 +98,6 @@ public class AuthServerConfigureAdapter extends SecurityConfigurerAdapter<Defaul
             http.formLogin().disable();
             http.cors().disable();
             http.csrf().disable();
-            http.servletApi().disable();
             http.logout().disable();
             http.requestCache().disable();
         } catch (Exception e) {
@@ -122,6 +125,7 @@ public class AuthServerConfigureAdapter extends SecurityConfigurerAdapter<Defaul
         apiLoginProcessFilter.setSecurityContextRepository(contextRepository);
 
         apiLoginProcessFilter.setSessionAuthenticationStrategy(sessionAuthenticationStrategy);
+        this.postProcess(apiLoginProcessFilter);
         return apiLoginProcessFilter;
     }
 
@@ -130,10 +134,7 @@ public class AuthServerConfigureAdapter extends SecurityConfigurerAdapter<Defaul
      * RedisIndexedSessionRepository 로 세션 관리르 한다면 HttpSessionSecurityContextRepository 의  springSecurityContextKey 를 변경해서는 안된다.
      */
     protected HttpSessionSecurityContextRepository getContextRepository() {
-        final HttpSessionSecurityContextRepository contextRepository
-                = new HttpSessionSecurityContextRepository();
-        contextRepository.setSpringSecurityContextKey("USER_CONTEXT");
-        return contextRepository;
+        return new HttpSessionSecurityContextRepository();
     }
 
     private ApiAuthenticationSuccessHandler getSuccessHandler() {
@@ -147,6 +148,8 @@ public class AuthServerConfigureAdapter extends SecurityConfigurerAdapter<Defaul
         }
         final ProviderManager providerManager = (ProviderManager) authenticationManager;
         final AuthenticationEventPublisher eventPublisher = http.getSharedObject(AuthenticationEventPublisher.class);
+        // TODO AuthenticationEventPublisher 는 현재 ApplicationContext 를 통해 접근할 수 없다. 다른 방식으로 AuthenticationEventPublisher
+        //  을 가져오도록 코드 수정하자.
         if (eventPublisher != null) {
             providerManager.setAuthenticationEventPublisher(eventPublisher);
         }
