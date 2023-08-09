@@ -16,6 +16,8 @@ public class AuthenticatedUser implements Authentication, CredentialsContainer {
 
     private boolean isErasedCredential = false;
 
+    private String sessionId;
+
     protected AuthenticatedUser() {
     }
 
@@ -80,6 +82,14 @@ public class AuthenticatedUser implements Authentication, CredentialsContainer {
     @Override
     public void eraseCredentials() {
         this.isErasedCredential = true;
+    }
+
+    public void setSessionId(final String sessionId) {
+        this.sessionId = sessionId;
+    }
+
+    public String getSessionId() {
+        return this.sessionId;
     }
 
 }

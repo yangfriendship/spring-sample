@@ -9,6 +9,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.util.Optional;
 
 @UtilityClass
@@ -57,6 +58,12 @@ public class WebUtils {
 
     private static boolean isServletRequestAttributes(Object source) {
         return source instanceof ServletRequestAttributes;
+    }
+
+    public static Optional<String> getSessionId() {
+        return getCurrentRequest()
+                .map(HttpServletRequest::getSession)
+                .map(HttpSession::getId);
     }
 
 }

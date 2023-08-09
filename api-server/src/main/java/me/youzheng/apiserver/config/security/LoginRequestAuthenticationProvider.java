@@ -6,6 +6,7 @@ import me.youzheng.core.exception.TokenParsingFailException;
 import me.youzheng.core.exception.UnauthorizedException;
 import me.youzheng.core.security.AuthenticatedUser;
 import me.youzheng.core.security.UserContext;
+import me.youzheng.core.util.WebUtils;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
@@ -44,7 +45,26 @@ public class LoginRequestAuthenticationProvider implements AuthenticationProvide
             throw new BadCredentialsException("패스워드가 일치하지 않습니다.");
         }
 
-        return AuthenticatedUser.authenticate((UserContext) userDetails);
+        final AuthenticatedUser authenticate = AuthenticatedUser.authenticate((UserContext) userDetails);
+        this.bindSessionId(authenticate);
+        return authenticate;
+    }
+
+    /**
+     * HttpServletRequest 에서 SessionId 를 가져옴. 세션이 존재하지 않을 경우 세션을 생성
+     */
+    private void bindSessionId(final AuthenticatedUser authenticate) {
+        this.forceInitSession();
+        final Optional<String> sessionId = WebUtils.getSessionId();
+        sessionId.ifPresent(authenticate::setSessionId);
+    }
+
+    /**
+     * HttpSessionSecurityContextRepository 이전에 Session 이 필요하기 때문에 강제로 생성한다.
+     */
+    private void forceInitSession() {
+        WebUtils.getCurrentRequest()
+                .ifPresent(request -> request.getSession(true));
     }
 
     private boolean isMatchPassword(final UserDetails userDetails, final LoginRequest loginRequest) {
