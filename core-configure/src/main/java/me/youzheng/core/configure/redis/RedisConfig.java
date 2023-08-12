@@ -1,7 +1,5 @@
 package me.youzheng.core.configure.redis;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,10 +30,12 @@ public class RedisConfig {
     }
 
 
-    @ConditionalOnMissingBean(name = {"defaultRedisTemplate"})
-    @Bean({"defaultRedisTemplate"})
-    public RedisTemplate<String, Object> defaultRedisTemplate(final ObjectMapper objectMapper) {
-        return new RedisTemplate<>();
+    @Bean("defaultRedisTemplate")
+    public RedisTemplate<String, Object> defaultRedisTemplate(final RedisConnectionFactory redisConnectionFactory) {
+        final RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(redisConnectionFactory);
+        redisTemplate.afterPropertiesSet();
+        return redisTemplate;
     }
 
 }
