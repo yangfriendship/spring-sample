@@ -1,9 +1,11 @@
 package me.youzheng.core.security;
 
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -11,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class AnnotationHttpStatusResolver implements ExceptionHttpStatusResolver {
 
+    private static final HttpStatus DEFAULT_HTTP_STATUS = HttpStatus.INTERNAL_SERVER_ERROR;
     private final Map<Class<? extends Exception>, HttpStatus> httpStatusCache = new ConcurrentHashMap<>();
 
     @Override
@@ -24,12 +27,9 @@ public class AnnotationHttpStatusResolver implements ExceptionHttpStatusResolver
      * 을 기본값으로 반환함.
      */
     private HttpStatus getHttpStatus(final Class<? extends Exception> clazz) {
-        final ResponseStatus[] annotationsByType = clazz.getAnnotationsByType(ResponseStatus.class);
-        if (annotationsByType.length == 0) {
-            return HttpStatus.INTERNAL_SERVER_ERROR;
-        }
-        final ResponseStatus responseStatus = annotationsByType[0];
-       return responseStatus.code();
+        return Optional.ofNullable(AnnotationUtils.findAnnotation(clazz, ResponseStatus.class))
+                .map(ResponseStatus::code)
+                .orElse(DEFAULT_HTTP_STATUS);
     }
 
 }
