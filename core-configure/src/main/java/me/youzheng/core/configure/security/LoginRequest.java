@@ -1,11 +1,13 @@
 package me.youzheng.core.configure.security;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import me.youzheng.core.exception.BadRequestException;
+import me.youzheng.core.exception.BadLoginRequestException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -16,6 +18,7 @@ import java.util.Collection;
 @Getter
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@JsonIncludeProperties({"principal", "credential"})
 public class LoginRequest implements Authentication {
 
     public static final String ROLE_NAME = "REQUEST_TOKEN";
@@ -32,10 +35,10 @@ public class LoginRequest implements Authentication {
 
     public void validate() throws BadRequestException {
         if (!StringUtils.hasLength(this.principal)) {
-            throw new BadRequestException("이메일을 입력해주세요.");
+            throw new BadLoginRequestException("이메일을 입력해주세요.");
         }
         if (!StringUtils.hasLength(this.credential)) {
-            throw new BadRequestException("패스워드를 입력해주세요.");
+            throw new BadLoginRequestException("패스워드를 입력해주세요.");
         }
     }
 
