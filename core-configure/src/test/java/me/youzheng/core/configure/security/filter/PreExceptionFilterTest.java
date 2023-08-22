@@ -17,36 +17,28 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-class PreExceptionFilterTest {
+class PreExceptionFilterTest extends AbstractFilterTest {
 
     PreExceptionFilter preExceptionFilter;
     ExceptionHandler exceptionHandler;
-    FilterChain mockFilterChain;
-
-    MockHttpServletRequest request;
-
-    MockHttpServletResponse response;
     MockSecurityContextHolderStrategy mockSecurityContextHolderStrategy;
 
     @BeforeEach
     void setUp() {
         this.exceptionHandler = mock(ExceptionHandler.class);
         this.preExceptionFilter = new PreExceptionFilter(this.exceptionHandler);
-        this.request = new MockHttpServletRequest();
-        this.response = new MockHttpServletResponse();
-        this.mockFilterChain = mock(FilterChain.class);
         this.mockSecurityContextHolderStrategy = new MockSecurityContextHolderStrategy();
     }
 
     @DisplayName("[SUCCESS] 필터 체이닝 중 예외가 발생하면 'OutputStream' 을 초기화한다.")
     @Test
     void 예외처리필터_테스트() throws ServletException, IOException {
-        doThrow(IOException.class).when(this.mockFilterChain)
+        doThrow(IOException.class).when(this.filterChain)
                 .doFilter(any(), any());
 
         SecurityContextHolder.setContextHolderStrategy(mockSecurityContextHolderStrategy);
 
-        this.preExceptionFilter.doFilter(request, response, mockFilterChain);
+        this.preExceptionFilter.doFilter(request, response, filterChain);
 
         assertThat(this.mockSecurityContextHolderStrategy.getClearContextCallCount())
                 .isEqualTo(1)

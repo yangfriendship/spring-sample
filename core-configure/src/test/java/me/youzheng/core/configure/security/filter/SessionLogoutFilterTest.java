@@ -1,56 +1,33 @@
 package me.youzheng.core.configure.security.filter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
-import org.springframework.mock.web.*;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.session.SessionRegistry;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import java.io.IOException;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-class SessionLogoutFilterTest {
+class SessionLogoutFilterTest extends AbstractFilterTest {
 
     // dependency objects
     SessionLogoutFilter sessionLogoutFilter;
     String pattern;
-    String sessionCookieName;
     SessionRegistry sessionRegistry;
-    ObjectMapper objectMapper;
-
-    // mocks
-    MockHttpServletRequest request;
-    MockHttpServletResponse response;
-    MockFilterChain filterChain;
-
-    MockHttpSession session;
-    MockServletContext servletContext;
-    String sessionId;
 
     // mock
     @BeforeEach
     void setUp() {
         this.pattern = "/api/logout";
-        this.sessionCookieName = "YSESSION";
         this.sessionRegistry = mock(SessionRegistry.class);
-        this.objectMapper = new Jackson2ObjectMapperBuilder().build();
         this.sessionLogoutFilter = new SessionLogoutFilter(pattern, sessionCookieName, sessionRegistry, objectMapper);
-        this.request = new MockHttpServletRequest();
-        this.response = new MockHttpServletResponse();
-        this.filterChain = new MockFilterChain();
-        this.servletContext = new MockServletContext();
-        this.sessionId = UUID.randomUUID().toString();
-        this.session = new MockHttpSession(this.servletContext, this.sessionId);
     }
-
 
     @DisplayName("[FAIL] 세션정보가 없는 요청 로그아웃 테스트")
     @Test

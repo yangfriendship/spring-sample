@@ -1,6 +1,5 @@
 package me.youzheng.core.configure.security.filter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import me.youzheng.core.configure.security.LoginRequest;
 import me.youzheng.core.exception.BadLoginRequestException;
 import org.assertj.core.api.Assertions;
@@ -10,9 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 
@@ -24,27 +20,18 @@ import java.util.stream.Stream;
 
 import static org.mockito.Mockito.*;
 
-class ApiLoginProcessFilterTest {
+class ApiLoginProcessFilterTest extends AbstractFilterTest {
 
     String AUTH_PROCESSING_URI = "/someUri";
     ApiLoginProcessFilter apiLoginProcessFilter;
-    ObjectMapper objectMapper;
-    MockHttpServletRequest request;
-    MockHttpServletResponse response;
     FilterChain chain;
     AuthenticationManager providerManager;
 
     @BeforeEach
     void setUp() {
-        this.objectMapper = new Jackson2ObjectMapperBuilder()
-                .build();   // mixin 등 별다른 설정은 하지 않는다.
         this.providerManager = mock(ProviderManager.class);
-
         this.apiLoginProcessFilter = new ApiLoginProcessFilter(AUTH_PROCESSING_URI, this.objectMapper);
         this.apiLoginProcessFilter.setAuthenticationManager(this.providerManager);
-        this.request = new MockHttpServletRequest();
-        this.response = new MockHttpServletResponse();
-        this.chain = mock(FilterChain.class);
         this.request.setServletPath(this.AUTH_PROCESSING_URI);
     }
 
