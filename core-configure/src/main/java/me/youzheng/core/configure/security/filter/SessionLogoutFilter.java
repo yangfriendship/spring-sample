@@ -2,7 +2,9 @@ package me.youzheng.core.configure.security.filter;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import me.youzheng.core.web.ApiError;
 import me.youzheng.core.web.ApiResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.util.StringUtils;
@@ -21,6 +23,7 @@ import java.util.Map;
 public class SessionLogoutFilter extends GenericFilterBean {
 
     private final AntPathRequestMatcher antPathRequestMatcher;
+
     private final String sessionCookieName;
 
     private final SessionRegistry sessionRegistry;
@@ -30,7 +33,7 @@ public class SessionLogoutFilter extends GenericFilterBean {
     private static final Map<String, Object> LOGOUT_SUCCESS_MESSAGE = Map.of("message", "로그아웃되었습니다.");
 
     public SessionLogoutFilter(final AntPathRequestMatcher antPathRequestMatcher, final String sessionCookieName
-            , final SessionRegistry sessionRegistry , final ObjectMapper objectMapper) {
+            , final SessionRegistry sessionRegistry, final ObjectMapper objectMapper) {
         this.antPathRequestMatcher = antPathRequestMatcher;
         this.sessionCookieName = sessionCookieName;
         this.sessionRegistry = sessionRegistry;
@@ -57,6 +60,7 @@ public class SessionLogoutFilter extends GenericFilterBean {
 
         final String sessionId = request.getRequestedSessionId();
         if (!StringUtils.hasLength(sessionId)) {
+            writeBadRequest(response);
             return;
         }
 
@@ -64,6 +68,15 @@ public class SessionLogoutFilter extends GenericFilterBean {
         final Cookie emptyCookie = createEmptyCookie();
         response.addCookie(emptyCookie);
         writeSuccessMessage(response);
+    }
+
+    private void writeBadRequest(final HttpServletResponse response) throws IOException {
+        response.setStatus(HttpStatus.BAD_REQUEST.value());
+        final JsonGenerator jsonGenerator = this.objectMapper.createGenerator(response.getOutputStream());
+        final ApiError apiError = ApiError.builder()
+                .code("ERROR0001")
+                .message("잘못된 요청입니다.").build();
+        this.objectMapper.writer().writeValue(jsonGenerator, ApiResponse.fail(apiError));
     }
 
     private void writeSuccessMessage(final HttpServletResponse response) throws IOException {
