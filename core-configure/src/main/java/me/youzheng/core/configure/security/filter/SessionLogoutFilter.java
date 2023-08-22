@@ -2,6 +2,7 @@ package me.youzheng.core.configure.security.filter;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import me.youzheng.core.util.WebUtils;
 import me.youzheng.core.web.ApiError;
 import me.youzheng.core.web.ApiResponse;
 import org.springframework.http.HttpStatus;
@@ -66,6 +67,8 @@ public class SessionLogoutFilter extends GenericFilterBean {
 
         this.sessionRegistry.removeSessionInformation(sessionId);
         final Cookie emptyCookie = createEmptyCookie();
+
+        WebUtils.setDefaultContentType(response);
         response.addCookie(emptyCookie);
         writeSuccessMessage(response);
     }
