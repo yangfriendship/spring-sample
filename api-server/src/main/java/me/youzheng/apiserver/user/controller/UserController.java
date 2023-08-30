@@ -45,7 +45,7 @@ public class UserController {
         );
     }
 
-    @GetMapping(BASE_URL + "check-nickname/{nickname}")
+    @GetMapping(BASE_URL + "/check-nickname/{nickname}")
     public ResponseEntity<ApiResponse<CheckResult>> checkNicknameIsAlreadyUsed(@PathVariable("nickname") final String nickname) {
         final boolean isUsed = this.userService.checkNickname(nickname);
         return ResponseEntity.ok(
